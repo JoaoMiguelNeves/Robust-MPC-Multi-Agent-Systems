@@ -1,0 +1,12 @@
+function drawColor(xObj,yObj)
+% Utility function to draw the agent's objective.
+    x=-50:1:50;
+    y=-50:1:50;
+    [X,Y]=meshgrid(x,y);
+    Z = (100 - abs(X - 10) - abs(Y - 10))^2;
+    h = surf(X,Y,Z);
+    set (h, 'edgecolor', 'none');
+    grid off
+    view(2)
+end
+

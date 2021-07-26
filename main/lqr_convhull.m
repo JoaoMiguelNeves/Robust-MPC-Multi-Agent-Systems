@@ -6,7 +6,7 @@ h = 10; % horizon
 tmax = 100; % simulation time
 m = 4; % 4th order agent dynamics
 
-obstacleVertices = [20 20; 30 10; 30 20; 40 10];
+obstacleVertices = [20 30; 30 10; 30 30; 40 10];
 [k, av] = convhull(obstacleVertices);
 
 Ai = kron([1 1;0 1], eye(2)); % double integrator ith node dynamics
@@ -40,7 +40,7 @@ plotX = x(1:m:end,1);
 plotY = x(2:m:end,1);
 
 % Draw color map first
-surfColor = drawColor(c,c)
+surfColor = drawColor(c,c);
 uistack(surfColor, 'bottom');
 hold on
 
@@ -56,11 +56,9 @@ xlim(50*[-1 1]);
 ylim(50*[-1 1]);
 
 
-
 for iter = 1:tmax
     % update formation
     v = 0.2 + v;
-    c = 0.2 + c;
     
     % Discrete-time LQR (infinite horizon without constraints) controller
     % error in the formation
@@ -70,13 +68,12 @@ for iter = 1:tmax
     [K,S,E] = dlqr(A,B,1000*eye(nx),1*eye(nu));
     
 	% select actuation
-    u(:,iter) = -K * e; 
+    u(:,iter) = -K * e;
     
 	% update MAS state 
-	x(:,iter+1) = A * x(:,iter) + B * u(:,iter); 
+	x(:,iter+1) = A * x(:,iter) + B * u(:,iter);
 	
     % each frame has a 0.01s pause
-	pause(0.01);
 	figure(fid);
     
     % each frame, we add the convex hull 
@@ -85,8 +82,6 @@ for iter = 1:tmax
     plotY = x(2:m:end,iter);
     
     set(s, 'XData', plotX, 'YData', plotY);
-    
-    updateColor(surfColor, c, c);
     
 	frame = getframe(gcf);
 	writeVideo(writerObj, frame);

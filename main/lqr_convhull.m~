@@ -1,3 +1,5 @@
+%%
+
 clearvars;
 close all;
 
@@ -30,11 +32,9 @@ v = v(:)';
 
 c = 10;
 
-fid = figure;
-writerObj = VideoWriter('plot.avi');
-writerObj.FrameRate = 60;
-open(writerObj);
-
+%%
+fid = figure();
+hold on
 % initialize scatter plot to update later
 plotX = x(1:m:end,1);
 plotY = x(2:m:end,1);
@@ -42,11 +42,12 @@ plotY = x(2:m:end,1);
 % Draw color map first
 surfColor = drawColor(c,c);
 uistack(surfColor, 'bottom');
-hold on
 
+%%
 % Draw obstacles
 drawObstacles(obstacleVertices, k);
 
+%%
 % Draw agents
 s = scatter(plotX, plotY);
 s.LineWidth = 0.6;
@@ -55,7 +56,7 @@ s.MarkerFaceColor = 'b';
 xlim(50*[-1 1]);
 ylim(50*[-1 1]);
 
-
+%%
 for iter = 1:tmax
     % update formation
     v = 0.2 + v;
@@ -72,20 +73,12 @@ for iter = 1:tmax
     
 	% update MAS state 
 	x(:,iter+1) = A * x(:,iter) + B * u(:,iter);
-	
-    % each frame has a 0.01s pause
-	figure(fid);
-    
+	    
     % each frame, we add the convex hull 
 
     plotX = x(1:m:end,iter);
     plotY = x(2:m:end,iter);
     
     set(s, 'XData', plotX, 'YData', plotY);
-    
-	frame = getframe(gcf);
-	writeVideo(writerObj, frame);
 end
-
-close (writerObj);
 

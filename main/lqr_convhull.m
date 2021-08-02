@@ -12,8 +12,8 @@ obstacleVertices = [20 30; 30 10; 30 30; 40 10];
 Ai = kron([1 1;0 1], eye(2)); % double integrator ith node dynamics
 Bi = kron([0;1],eye(2));
 
-nx = n*m; % number of states of MAS
-nu = n*size(Bi,2); % number of actuatiors of the MAS
+nx = n*m;           % number of states of MAS
+nu = n*size(Bi,2);  % number of actuatiors of the MAS
 
 A = kron(eye(n),Ai); % MAS dynamics
 B = kron(eye(n),Bi);
@@ -42,7 +42,7 @@ plotY = x(2:m:end,1);
 % Draw color map first
 surfColor = drawColor(c,c);
 uistack(surfColor, 'bottom');
-hold on
+hold on;
 
 % Draw obstacles
 drawObstacles(obstacleVertices, k);

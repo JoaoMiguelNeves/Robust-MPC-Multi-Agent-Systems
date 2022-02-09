@@ -82,6 +82,11 @@ else
     video_name = 'plot_no_collision.avi';
 end
 
+try
+    close(video_name);
+catch
+end
+
 writerObj = VideoWriter(video_name);
 writerObj.FrameRate = 60;
 open(writerObj);

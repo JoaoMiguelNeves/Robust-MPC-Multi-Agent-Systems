@@ -1,13 +1,22 @@
 clearvars;
 close all;
 
+algorithm = 'lqr';
+
+accepted_algorithms = ['lqr', 'mpc'];
+
+if strcmp(algorithm, accepted_algorithms)
+    return
+end
+
+
 n = 5; % number of agents
 h = 10; % horizon
 tmax = 100; % simulation time
 m = 4; % 4th order agent dynamics
 
 % change this setting for simulation to stop on collision
-detect_collisions = false;
+detect_collisions = true;
 
 obstacleVertices = [20 30; 30 10; 30 30; 40 10];
 [k, av] = convhull(obstacleVertices);
@@ -76,10 +85,12 @@ end
 
 %% Write Video
 
+video_name = algorithm;
+
 if detect_collisions
-    video_name = 'plot_collision.avi';
+    video_name = strcat(video_name, '_collision.avi');
 else
-    video_name = 'plot_no_collision.avi';
+    video_name = strcat(video_name, '_no_collision.avi');
 end
 
 try

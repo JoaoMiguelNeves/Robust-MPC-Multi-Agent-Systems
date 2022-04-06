@@ -84,8 +84,17 @@ for iter = 1:tmax
 end
 
 %% Write Video
+filePath = matlab.desktop.editor.getActiveFilename;
+filePath = strsplit(filePath,'/');
 
-video_name = algorithm;
+video_path = filePath(1);
+for l = filePath(2:end-1)
+    video_path = strcat(video_path, '/', l);
+end
+
+video_path = strcat(video_path, '/', algorithm);
+
+video_name = video_path{1,1};
 
 if detect_collisions
     video_name = strcat(video_name, '_collision.avi');

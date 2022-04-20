@@ -15,16 +15,18 @@ h = 10; % horizon
 tmax = 100; % simulation time
 m = 4; % 4th order agent dynamics
 
-% change this setting for simulation to stop on collision
-detect_collisions = true;
+obstacleVertices = [];
+obstacleCircles = [];
+obstacleCircles = [30 20 5];
 
-obstacleVertices = [20 30; 30 10; 30 30; 40 10];
-[k, av] = convhull(obstacleVertices);
+if ~isempty(obstacleVertices)
+	[k, av] = convhull(obstacleVertices);
+end
 
 if strcmp(algorithm, 'lqr')
-	[x, t_collision] = lqr(n,h,tmax,m,detect_collisions,obstacleVertices);
+	[x, t_collision] = lqr(n,tmax,m,obstacleVertices,obstacleCirles);
 elseif strcmp(algorithm, 'mpc')
-	[x, t_collision] = mpc_solver(n,h,tmax,m,detect_collisions,obstacleVertices);
+	[x, t_collision] = mpc_solver(n,h,tmax,m,obstacleVertices,obstacleCircles);
 end
 
 %% Write Video
@@ -41,11 +43,7 @@ video_path = strcat(video_path, '/', algorithm);
 
 video_name = video_path{1,1};
 
-if detect_collisions
-    video_name = strcat(video_name, '_collision.avi');
-else
-    video_name = strcat(video_name, '_no_collision.avi');
-end
+video_name = strcat(video_name, '_collision.avi');
 
 try
     close(video_name);
@@ -67,7 +65,13 @@ uistack(surfColor, 'bottom');
 hold on;
 
 % Draw obstacles
-drawObstacles(obstacleVertices, k);
+if ~isempty(obstacleVertices)
+	drawObstacles(obstacleVertices, k);
+end
+
+if ~isempty(obstacleCircles)
+	drawCircles(obstacleCircles);
+end
 
 % Draw agents
 s = scatter(plotX, plotY);

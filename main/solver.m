@@ -3,34 +3,38 @@ close all;
 
 algorithm = 'mpc';
 
-accepted_algorithms = ['lqr', 'mpc'];
+n = 10;		% number of agents
+h = 1;		% horizon of MPC
+tmax = 200; % simulation time
+d = 2;		% dimensions of the space where agents move (R^2, R^3, etc.)
+m = 2 * d;	% mth order agent dynamics (velocity and position are both considered)
 
-if strcmp(algorithm, accepted_algorithms)
-    return
-end
-
-
-n = 5; % number of agents
-h = 10; % horizon
-tmax = 100; % simulation time
-m = 4; % 4th order agent dynamics
-
-obstacleVertices = [];
+% Obstacles are circles (pos_x1, pos_x2, radius)
 obstacleCircles = [];
-obstacleCircles = [30 20 5];
+obstacleCircles = [16 30 8; 30 18 8;16 -20 5; 30 -12 5];
 
-if ~isempty(obstacleVertices)
-	[k, av] = convhull(obstacleVertices);
-end
-
+% Load premade formation
+load('formations/form_wave_6_200_8.mat', 'formation', 'n', 'tmax');
+tic;
 if strcmp(algorithm, 'lqr')
-	[x, t_collision] = lqr(n,tmax,m,obstacleVertices,obstacleCirles);
+	x = lqr(n,tmax,m,obstacleVertices,obstacleCirles);
 elseif strcmp(algorithm, 'mpc')
-	[x, t_collision] = mpc_solver(n,h,tmax,m,obstacleVertices,obstacleCircles);
+	[x, error, energy, distance] = mpc_solver(n,tmax,m,h,formation,obstacleCircles);
+elseif strcmp(algorithm, 'lyapunov')
+	[x, error, energy, distance] = lyapunov(n,tmax,m,formation,obstacleCircles);
+elseif strcmp(algorithm, 'mpc_dumb')
+	x = mpc_dumb(n,h,tmax,m,obstacleVertices,obstacleCircles);
+else
+	disp(['Invalid Solver "', algorithm, '"']);
 end
-
+time = toc;
 %% Write Video
 
+% Save measurements to file
+filename = algorithm + "_" + n + "_" + tmax + ".mat";
+save(filename, 'x', 'error', 'energy', 'distance', 'time');
+
+% Creating video name
 filePath = matlab.desktop.editor.getActiveFilename;
 filePath = strsplit(filePath,'/');
 
@@ -43,59 +47,13 @@ video_path = strcat(video_path, '/', algorithm);
 
 video_name = video_path{1,1};
 
-video_name = strcat(video_name, '_collision.avi');
+video_name = convertStringsToChars(strcat(video_name, '_', string(n), '_', string(tmax), '.avi'));
 
 try
     close(video_name);
 catch
 end
 
-writerObj = VideoWriter(video_name);
-writerObj.FrameRate = 60;
-open(writerObj);
-
-% initialize scatter plot to update later
-plotX = x(1:m:end,1);
-plotY = x(2:m:end,1);
-
-% Draw color map first
-c = 10;
-surfColor = drawColor(c,c);
-uistack(surfColor, 'bottom');
-hold on;
-
-% Draw obstacles
-if ~isempty(obstacleVertices)
-	drawObstacles(obstacleVertices, k);
-end
-
-if ~isempty(obstacleCircles)
-	drawCircles(obstacleCircles);
-end
-
-% Draw agents
-s = scatter(plotX, plotY);
-s.LineWidth = 0.6;
-s.MarkerEdgeColor = 'b';
-s.MarkerFaceColor = 'b';
-xlim(50*[-1 1]);
-ylim(50*[-1 1]);
-
-if t_collision == 0
-    video_size = tmax;
-else
-    video_size = t_collision;
-end
-
-for iter = 1:video_size
-    plotX = x(1:m:end,iter);
-    plotY = x(2:m:end,iter);
-    
-    set(s, 'XData', plotX, 'YData', plotY);
-    
-	frame = getframe(gcf);
-	writeVideo(writerObj, frame);
-end
+create_video(video_name, x, n, m, tmax, algorithm, obstacleCircles, error, energy, distance);
 
  
-close (writerObj);

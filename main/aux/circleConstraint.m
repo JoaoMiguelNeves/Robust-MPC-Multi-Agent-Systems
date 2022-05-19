@@ -5,7 +5,7 @@ function constraints = circleConstraint(constraints, circle, positions, n, h, xs
 		
 		% Calculate the slope of the line connecting the agent and circle's
 		% center, obtain the perpendicular line by the inverse of the slope
-		m = x - circle(1)/y - circle(2);
+		m = (x - circle(1))/(y - circle(2));
 		
 		b = circle(2) - m * circle(1);
 		
@@ -13,7 +13,7 @@ function constraints = circleConstraint(constraints, circle, positions, n, h, xs
 		cons = y > m * x + b;
 		
 		% obtain the b value for the circle's limit
-		b_aux = circle(3)* sqrt(1 + m^2);
+		b_aux = (circle(3)+0.2)* sqrt(1 + m^2);
 		if cons 
 			b = b + b_aux;
 		else 
@@ -24,9 +24,9 @@ function constraints = circleConstraint(constraints, circle, positions, n, h, xs
 		
 		for c = 1:h+1
 			if cons
-				constraints = [constraints, xsdp((i-1)*4 +(c-1)*n+2) >= xsdp((i-1)*4 +(c-1)*n+1) * m + b];
+				constraints = [constraints, xsdp((i-1)*4 +(c-1)*(4*n)+2) >= xsdp((i-1)*4 +(c-1)*(4*n)+1) * m + b];
 			else
-				constraints = [constraints, xsdp((i-1)*4 +(c-1)*n+2) <= xsdp((i-1)*4 +(c-1)*n+1) * m + b];
+				constraints = [constraints, xsdp((i-1)*4 +(c-1)*(4*n)+2) <= xsdp((i-1)*4 +(c-1)*(4*n)+1) * m + b];
 			end
 			
 		end

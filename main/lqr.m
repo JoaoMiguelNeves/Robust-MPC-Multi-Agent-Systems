@@ -1,4 +1,4 @@
-function [x, t_collision] = lqr(n, tmax, m, obstacleVertices, obstacleCirlces)
+function x = lqr(n, tmax, m, obstacleVertices, obstacleCirlces)
 % Solves the optimization problem using the lqr method
 
 	Ai = kron([1 1;0 1], eye(2)); % double integrator ith node dynamics

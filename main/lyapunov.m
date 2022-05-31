@@ -34,7 +34,8 @@ function [x, error_pos, energy_spent, distance] = lyapunov(n, tmax, m, formation
 	distance = zeros(1, tmax);
 	
 	% Skew value
-	err = 0.05;
+	err = 0;
+	%err = 0.05;
 	Ei = kron([0;1], eye(2));
 	E = kron(eye(n), Ei);
 	
@@ -96,7 +97,7 @@ function [x, error_pos, energy_spent, distance] = lyapunov(n, tmax, m, formation
 			distance(iter) = norm(V *(x(:,iter+1) - x(:,iter)));
 		else 
 			% energy spent and distance are cumulatively saved
-			x_err = x(:,iter) - formation(:,iter-1);
+			x_err = x(:,iter) - formation(:,iter);
 			error_pos(iter) = norm(x_err.' * kron(eye(n),diag([1 1 0 0])));
 			energy_spent(iter) = energy_spent(iter - 1) + norm(u(:,iter));
 			distance(iter) = distance(iter - 1) + norm(V * (x(:,iter+1) - x(:,iter)));

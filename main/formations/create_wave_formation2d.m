@@ -1,8 +1,8 @@
 function formation = create_wave_formation2d(n, tmax, velocity_x1, velocity_x2, r)
 	formation = zeros(4 * n, tmax);
-	x = r*[cos((1:n).*2*pi/n);sin((1:n).*2*pi/n)];
+	%x = r*[cos((1:n).*2*pi/n);sin((1:n).*2*pi/n)];
 	
-	%x = r*[cos((0:n-1).*2*pi/n);sin((0:n-1).*2*pi/n)];
+	x = r*[cos((0:n-1).*2*pi/n);sin((0:n-1).*2*pi/n)];
 	x = [reshape(x,2,n); zeros(2,n)];
 	x = x(:)';
 	formation(:,1) = x;

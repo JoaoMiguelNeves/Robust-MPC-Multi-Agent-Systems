@@ -1,4 +1,4 @@
-function x = lqr(n, tmax, m, obstacleVertices, obstacleCirlces)
+function [x, error_pos, energy_spent, distance] = lqr(n, tmax, m, formation)
 % Solves the optimization problem using the lqr method
 
 	Ai = kron([1 1;0 1], eye(2)); % double integrator ith node dynamics
@@ -14,63 +14,35 @@ function x = lqr(n, tmax, m, obstacleVertices, obstacleCirlces)
 	u = zeros(nu,tmax); % [ax1, ay1, ..., axn, ayn]'
 	x(:,1) = rand(nx,1);
 	
-	% formation definition
-	v = 10*[cos((0:4).*2*pi/n);sin((0:4).*2*pi/n)] + 10;
-	v = v(:)';
-	fvelocity = 0.2;
+	% measurements to assess simulation
+	error_pos = zeros(1, tmax);
+	energy_spent = zeros(1, tmax);
+	distance = zeros(1, tmax);
 	
-	% use vert2lcon to obtain linear constraints for collision detection
-	if ~isempty(obstacleVertices)
-		[Ac,bc,~,~] = vert2lcon(obstacleVertices);
-		detect_collisions = true;
-	else
-		detect_collisions = false;
-	end
+	V = kron(eye(n), diag([1 1 0 0]));
 
-	% Define a possible time of collision to limit video
-	t_collision = 0;
-	
-	% Define agents that are active, i.e. haven't collided
-	active_agents = 1:n;
-	inactive_agents = [];
-	
 	for iter = 1:tmax
 		% Discrete-time LQR (infinite horizon without constraints) controller
 		% error in the formation
-		xss = [reshape(v,2,n);0.1*ones(2,n)];
-		xss = xss(:);
-		e = x(:,iter) - xss;
+		e = x(:,iter) - formation(:,iter);
 		[K,S,E] = dlqr(A,B,1000*eye(nx),1*eye(nu));
-		
-		% update formation
-		v = fvelocity + v;
 
 		% select actuation
 		u(:,iter) = -K * e;
 		
-		% for agents that are inactive, ignore actuation
-		if ~isempty(inactive_agents)
-			u(inactive_agents,iter) = 0;
-		end
-		
 		% update MAS state 
 		x(:,iter+1) = A * x(:,iter) + B * u(:,iter);
-
-		% check for collisions
-		if detect_collisions
-			for agent = active_agents
-				agent_pos = x((((agent - 1) * 4) + 1:((agent - 1) * 4) + 2), iter + 1);
-				if hasCollided(agent_pos, Ac, bc)
-					collided_agent = active_agents == agent;
-					active_agents(collided_agent) = [];
-					inactive_agents = [inactive_agents, (agent-1)*2 + 1, (agent-1)*2 + 2];
-					x((((agent - 1) * 4) + 3:((agent - 1) * 4) + 4), iter + 1) = 0;
-				end
-			end
-		end
-
-		if t_collision ~= 0 
-			break
+		
+		if (iter == 1) 
+			error_pos(iter) = norm(e.' * kron(eye(n),diag([1 1 0 0])));
+			energy_spent(iter) = norm(u(:,iter));
+			distance(iter) = norm(V *(x(:,iter+1) - x(:,iter)));
+		else 
+			% energy spent and distance are cumulatively saved
+			x_err = x(:,iter) - formation(:,iter);
+			error_pos(iter) = norm(x_err.' * kron(eye(n),diag([1 1 0 0])));
+			energy_spent(iter) = energy_spent(iter - 1) + norm(u(:,iter));
+			distance(iter) = distance(iter - 1) + norm(V * (x(:,iter+1) - x(:,iter)));
 		end
 	end
 end
